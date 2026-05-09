@@ -1,0 +1,2 @@
+const orders = ["sent_to_restaurant", "accepted", "preparing", "ready"];
+export default function RestaurantDashboard() { return <main className="dashboard"><header><p>Restaurant operations</p><h1>Live orders</h1><button>Accepting orders</button></header><section className="kanban">{orders.map((status) => <article key={status}><h2>{status.replaceAll("_", " ")}</h2><p>Realtime SSE feed updates this queue as paid orders arrive.</p></article>)}</section></main>; }

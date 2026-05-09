@@ -1,0 +1,19 @@
+{
+  "name": "marsh-eats",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Production foundation for Marsh Eats UK local-first food ordering marketplace.",
+  "workspaces": [
+    "apps/*",
+    "services/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run build --workspace @marsh-eats/shared && node --test packages/shared/src/*.test.js services/api/src/*.test.js",
+    "lint": "npm run lint --workspaces --if-present"
+  },
+  "engines": {
+    "node": ">=20.11"
+  }
+}
