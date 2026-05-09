@@ -95,10 +95,10 @@ app.post("/api/v1/orders", async (request) => {
     items: z.array(z.object({
       menuItemId: z.string().uuid(),
       quantity: z.number().int().positive().max(99),
-      name: z.string().min(1),
-      unitPricePence: z.number().int().nonnegative(),
-      allergens: z.array(z.string()).default([]),
-      modifiers: z.array(z.unknown()).default([])
+      name: z.string().min(1).optional(),
+      unitPricePence: z.number().int().nonnegative().optional(),
+      allergens: z.array(z.string()).optional(),
+      modifiers: z.array(z.unknown()).optional()
     })).min(1)
   }).parse(request.body);
   return createPendingOrder(body);

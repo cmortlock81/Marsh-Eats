@@ -5,10 +5,24 @@ import { withTransaction } from "../db/pool.js";
 export interface BasketItemInput {
   menuItemId: string;
   quantity: number;
+  name?: string;
+  unitPricePence?: number;
+  allergens?: string[];
+  modifiers?: unknown[];
+}
+
+interface MenuItemSnapshot {
+  id: string;
   name: string;
-  unitPricePence: number;
+  pricePence: number;
   allergens: string[];
   modifiers: unknown[];
+}
+
+interface OrderLineItem {
+  menuItemId: string;
+  quantity: number;
+  snapshot: MenuItemSnapshot;
 }
 
 export interface CreateOrderInput {
@@ -25,7 +39,8 @@ export async function createPendingOrder(input: CreateOrderInput) {
     const existing = await client.query("select response_body from idempotency_keys where key = $1", [input.idempotencyKey]);
     if (existing.rowCount) return existing.rows[0].response_body;
 
-    const subtotalPence = input.items.reduce((sum, item) => sum + item.unitPricePence * item.quantity, 0);
+    const orderLineItems = await buildOrderLineItems(client, input.restaurantId, input.items);
+    const subtotalPence = orderLineItems.reduce((sum, item) => sum + item.snapshot.pricePence * item.quantity, 0);
     const breakdown = calculateMoneyBreakdown(subtotalPence);
     const order = await client.query(
       `insert into orders (customer_id, restaurant_id, fulfilment_type, delivery_address_id, subtotal_pence, total_pence,
@@ -44,7 +59,7 @@ export async function createPendingOrder(input: CreateOrderInput) {
       ]
     );
 
-    for (const item of input.items) {
+    for (const item of orderLineItems) {
       await client.query(
         `insert into order_items (order_id, menu_item_id, item_name_snapshot, unit_price_pence_snapshot, quantity,
           allergens_snapshot, modifiers_snapshot, line_total_pence)
@@ -52,12 +67,12 @@ export async function createPendingOrder(input: CreateOrderInput) {
         [
           order.rows[0].id,
           item.menuItemId,
-          item.name,
-          item.unitPricePence,
+          item.snapshot.name,
+          item.snapshot.pricePence,
           item.quantity,
-          JSON.stringify(item.allergens),
-          JSON.stringify(item.modifiers),
-          item.unitPricePence * item.quantity
+          JSON.stringify(item.snapshot.allergens),
+          JSON.stringify(item.snapshot.modifiers),
+          item.snapshot.pricePence * item.quantity
         ]
       );
     }
@@ -102,4 +117,47 @@ async function recordStatusEvent(
      values ($1,$2,$3,$4,$5)`,
     [orderId, fromStatus, toStatus, actor, actorUserId ?? null]
   );
+}
+
+async function buildOrderLineItems(
+  client: pg.PoolClient,
+  restaurantId: string,
+  items: BasketItemInput[]
+): Promise<OrderLineItem[]> {
+  const menuItemIds = [...new Set(items.map((item) => item.menuItemId))];
+  const { rows } = await client.query(
+    `select i.id, i.name, i.price_pence, i.allergens, i.modifiers
+     from menu_items i
+     join menu_categories c on c.id = i.category_id
+     join menus m on m.id = c.menu_id
+     where i.id = any($1::uuid[])
+       and m.restaurant_id = $2
+       and m.is_active = true
+       and i.is_available = true
+       and i.deleted_at is null`,
+    [menuItemIds, restaurantId]
+  );
+
+  const snapshots = new Map<string, MenuItemSnapshot>(
+    rows.map((row) => [
+      row.id,
+      {
+        id: row.id,
+        name: row.name,
+        pricePence: row.price_pence,
+        allergens: row.allergens ?? [],
+        modifiers: row.modifiers ?? []
+      }
+    ])
+  );
+
+  if (snapshots.size !== menuItemIds.length) {
+    throw Object.assign(new Error("One or more menu items are unavailable"), { statusCode: 400 });
+  }
+
+  return items.map((item) => ({
+    menuItemId: item.menuItemId,
+    quantity: item.quantity,
+    snapshot: snapshots.get(item.menuItemId)!
+  }));
 }
