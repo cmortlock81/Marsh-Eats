@@ -3,7 +3,7 @@ import { config } from "../config.js";
 import { pool } from "../db/pool.js";
 import { transitionOrder } from "../orders/order-service.js";
 
-export const stripe = new Stripe(config.STRIPE_SECRET_KEY, { apiVersion: "2024-10-28.acacia" });
+export const stripe = new Stripe(config.STRIPE_SECRET_KEY, { apiVersion: "2025-02-24.acacia" });
 
 export async function createPaymentIntent(orderId: string, idempotencyKey: string) {
   const { rows, rowCount } = await pool.query("select id, total_pence from orders where id = $1", [orderId]);

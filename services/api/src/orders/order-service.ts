@@ -1,4 +1,4 @@
-import type pg from "pg";
+import type { PoolClient } from "pg";
 import { assertTransition, calculateMoneyBreakdown, type Actor, type OrderStatus } from "@marsh-eats/shared";
 import { withTransaction } from "../db/pool.js";
 
@@ -30,6 +30,9 @@ export interface CreateOrderInput {
   restaurantId: string;
   fulfilmentType: "delivery" | "collection";
   deliveryAddressId?: string;
+  customerContact: { name: string; email: string; phone?: string };
+  deliveryAddress?: { line1: string; line2?: string; town: string; postcode: string };
+  notes?: string;
   items: BasketItemInput[];
   idempotencyKey: string;
 }
@@ -39,13 +42,33 @@ export async function createPendingOrder(input: CreateOrderInput) {
     const existing = await client.query("select response_body from idempotency_keys where key = $1", [input.idempotencyKey]);
     if (existing.rowCount) return existing.rows[0].response_body;
 
+    const restaurant = await client.query(
+      `select id, status, minimum_order_pence, collection_enabled, delivery_enabled, is_accepting_orders
+       from restaurants where id = $1 and deleted_at is null for share`,
+      [input.restaurantId]
+    );
+    if (!restaurant.rowCount) throw Object.assign(new Error("Restaurant not found"), { statusCode: 404 });
+    if (restaurant.rows[0].status !== "active" || !restaurant.rows[0].is_accepting_orders) {
+      throw Object.assign(new Error("Restaurant is not accepting orders"), { statusCode: 400 });
+    }
+    if (input.fulfilmentType === "delivery" && !restaurant.rows[0].delivery_enabled) {
+      throw Object.assign(new Error("Restaurant does not offer delivery"), { statusCode: 400 });
+    }
+    if (input.fulfilmentType === "collection" && !restaurant.rows[0].collection_enabled) {
+      throw Object.assign(new Error("Restaurant does not offer collection"), { statusCode: 400 });
+    }
+
     const orderLineItems = await buildOrderLineItems(client, input.restaurantId, input.items);
     const subtotalPence = orderLineItems.reduce((sum, item) => sum + item.snapshot.pricePence * item.quantity, 0);
+    if (subtotalPence < restaurant.rows[0].minimum_order_pence) {
+      throw Object.assign(new Error("Order is below the restaurant minimum"), { statusCode: 400 });
+    }
     const breakdown = calculateMoneyBreakdown(subtotalPence);
     const order = await client.query(
       `insert into orders (customer_id, restaurant_id, fulfilment_type, delivery_address_id, subtotal_pence, total_pence,
-        commission_pence, rnli_contribution_pence, restaurant_payable_pence, status)
-       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,'pending_payment') returning *`,
+        commission_pence, rnli_contribution_pence, restaurant_payable_pence, status, customer_name, customer_email,
+        customer_phone, delivery_address_snapshot, customer_note)
+       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,'pending_payment',$10,$11,$12,$13,$14) returning *`,
       [
         input.customerId,
         input.restaurantId,
@@ -55,7 +78,12 @@ export async function createPendingOrder(input: CreateOrderInput) {
         breakdown.totalPence,
         breakdown.commissionPence,
         breakdown.rnliContributionPence,
-        breakdown.restaurantPayablePence
+        breakdown.restaurantPayablePence,
+        input.customerContact.name,
+        input.customerContact.email.toLowerCase(),
+        input.customerContact.phone ?? null,
+        input.deliveryAddress ? JSON.stringify(input.deliveryAddress) : null,
+        input.notes ?? null
       ]
     );
 
@@ -99,13 +127,13 @@ export async function transitionOrder(orderId: string, toStatus: OrderStatus, ac
     assertTransition(fromStatus, toStatus, actor);
     const updated = await client.query("update orders set status = $1, updated_at = now() where id = $2 returning *", [toStatus, orderId]);
     await recordStatusEvent(client, orderId, fromStatus, toStatus, actor, actorUserId);
-    await client.query("select pg_notify('order_status_changed', $1)", [JSON.stringify({ orderId, status: toStatus })]);
+    await client.query("select pg_notify('order_status_changed', $1)", [JSON.stringify({ orderId, restaurantId: current.rows[0].restaurant_id, status: toStatus })]);
     return updated.rows[0];
   });
 }
 
 async function recordStatusEvent(
-  client: pg.PoolClient,
+  client: PoolClient,
   orderId: string,
   fromStatus: OrderStatus | null,
   toStatus: OrderStatus,
@@ -120,7 +148,7 @@ async function recordStatusEvent(
 }
 
 async function buildOrderLineItems(
-  client: pg.PoolClient,
+  client: PoolClient,
   restaurantId: string,
   items: BasketItemInput[]
 ): Promise<OrderLineItem[]> {
