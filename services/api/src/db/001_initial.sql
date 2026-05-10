@@ -82,6 +82,8 @@ create table if not exists restaurants (
   delivery_enabled boolean not null default true,
   is_accepting_orders boolean not null default false,
   stripe_connect_account_id text,
+  logo_url text,
+  estimated_prep_minutes integer not null default 30 check (estimated_prep_minutes > 0),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   deleted_at timestamptz
@@ -153,6 +155,10 @@ create table if not exists orders (
   restaurant_payable_pence integer not null check (restaurant_payable_pence >= 0),
   currency char(3) not null default 'GBP',
   customer_note text,
+  customer_name text,
+  customer_email citext,
+  customer_phone text,
+  delivery_address_snapshot jsonb,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   deleted_at timestamptz

@@ -1,6 +1,8 @@
 import { createHmac, randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
+import type { FastifyRequest } from "fastify";
 import { z } from "zod";
 import { pool } from "./db/pool.js";
+import type { UserRole } from "@marsh-eats/shared";
 
 const secret = process.env.AUTH_TOKEN_SECRET ?? "replace-with-32-byte-production-secret";
 const ttlSeconds = 60 * 60;
@@ -26,11 +28,26 @@ export function signToken(payload: Record<string, string>) {
 
 export function verifyToken(token: string) {
   const [body, signature] = token.split(".");
+  if (!body || !signature) throw Object.assign(new Error("Invalid token"), { statusCode: 401 });
   const expected = createHmac("sha256", secret).update(body).digest("base64url");
-  if (!signature || !timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) throw Object.assign(new Error("Invalid token"), { statusCode: 401 });
+  const supplied = Buffer.from(signature);
+  const expectedBuffer = Buffer.from(expected);
+  if (supplied.length !== expectedBuffer.length || !timingSafeEqual(supplied, expectedBuffer)) {
+    throw Object.assign(new Error("Invalid token"), { statusCode: 401 });
+  }
   const payload = JSON.parse(Buffer.from(body, "base64url").toString("utf8"));
   if (payload.exp < Math.floor(Date.now() / 1000)) throw Object.assign(new Error("Token expired"), { statusCode: 401 });
-  return payload as { sub: string; role: string; email: string; exp: number };
+  return payload as { sub: string; role: UserRole; email: string; exp: number };
+}
+
+export function requireAuth(request: FastifyRequest, allowedRoles?: UserRole[]) {
+  const header = request.headers.authorization ?? "";
+  const token = header.replace(/^Bearer\s+/i, "");
+  const payload = verifyToken(token);
+  if (allowedRoles && !allowedRoles.includes(payload.role)) {
+    throw Object.assign(new Error("Forbidden"), { statusCode: 403 });
+  }
+  return payload;
 }
 
 export async function registerCustomer(input: { email: string; password: string; fullName: string; phone?: string }) {

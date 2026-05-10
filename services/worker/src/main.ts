@@ -16,8 +16,9 @@ async function sendOrderNotification(orderId: string, status: string) {
     [orderId]
   );
   if (!rows.length) return;
+  const tokens = rows.map((row: { token: string }) => row.token);
   await admin.messaging().sendEachForMulticast({
-    tokens: rows.map((row) => row.token),
+    tokens,
     data: { orderId, status, url: `${customerAppUrl}/orders/${orderId}` },
     notification: { title: "Marsh Eats order update", body: `Your order is ${status.replaceAll("_", " ")}.` }
   });
@@ -25,7 +26,8 @@ async function sendOrderNotification(orderId: string, status: string) {
 
 const client = await pool.connect();
 await client.query("listen order_status_changed");
-client.on("notification", async ({ payload }) => {
+client.on("notification", async (message: { payload?: string }) => {
+  const { payload } = message;
   if (!payload) return;
   const event = JSON.parse(payload) as { orderId: string; status: string };
   await sendOrderNotification(event.orderId, event.status);

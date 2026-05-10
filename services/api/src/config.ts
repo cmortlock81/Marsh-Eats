@@ -7,7 +7,8 @@ const schema = z.object({
   REDIS_URL: z.string().url().default("redis://redis:6379"),
   STRIPE_SECRET_KEY: z.string().min(1).default("sk_test_replace_me"),
   STRIPE_WEBHOOK_SECRET: z.string().min(1).default("whsec_replace_me"),
-  CUSTOMER_APP_URL: z.string().url().default("https://eat.marsh-eats.local")
+  CUSTOMER_APP_URL: z.string().url().default("https://eat.marsh-eats.local"),
+  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().min(1).default("pk_test_replace_me")
 });
 
 export const config = schema.parse(process.env);

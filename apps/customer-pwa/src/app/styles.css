@@ -1,15 +1,29 @@
 :root { color-scheme: light; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f8fafc; color: #0f172a; }
-body { margin: 0; padding-bottom: 84px; }
-.shell { max-width: 920px; margin: 0 auto; padding: 24px; }
+body { margin: 0; padding-bottom: 96px; }
+.shell { max-width: 980px; margin: 0 auto; padding: 18px; }
 .hero { border-radius: 32px; padding: 28px; color: white; background: linear-gradient(135deg, #0f172a, #0e7490); box-shadow: 0 24px 80px rgba(15, 23, 42, .22); }
 .eyebrow { margin: 0; color: #bae6fd; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; font-size: 12px; }
 h1 { font-size: clamp(38px, 9vw, 72px); line-height: .92; letter-spacing: -.06em; margin: 14px 0; }
-button { border: 0; border-radius: 999px; padding: 14px 20px; font-weight: 800; color: #0f172a; background: #fbbf24; }
+button { border: 0; border-radius: 999px; padding: 12px 16px; font-weight: 800; color: #0f172a; background: #fbbf24; cursor: pointer; }
+button:disabled { opacity: .55; cursor: not-allowed; }
+.ghost { background: #e0f2fe; }
 .cards { display: grid; gap: 16px; margin-top: 22px; }
-.card { background: white; border: 1px solid #e2e8f0; border-radius: 24px; padding: 16px; box-shadow: 0 16px 50px rgba(15, 23, 42, .08); }
-.image { height: 136px; border-radius: 18px; background: linear-gradient(135deg, #f97316, #22c55e); }
+.card, .panel { background: white; border: 1px solid #e2e8f0; border-radius: 24px; padding: 16px; box-shadow: 0 16px 50px rgba(15, 23, 42, .08); margin-top: 16px; }
+.card { cursor: pointer; }
+.image { height: 136px; border-radius: 18px; background: linear-gradient(135deg, #f97316, #22c55e); background-size: cover; background-position: center; }
 .card h2 { margin-bottom: 4px; }
-.card small { color: #0369a1; font-weight: 800; }
-.bottom-nav { position: fixed; left: 12px; right: 12px; bottom: 12px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 10px; border: 1px solid rgba(226,232,240,.9); border-radius: 26px; background: rgba(255,255,255,.88); backdrop-filter: blur(18px); box-shadow: 0 18px 60px rgba(15, 23, 42, .18); }
-.bottom-nav a { text-align: center; text-decoration: none; color: #0f172a; font-weight: 800; font-size: 13px; }
-@media (min-width: 720px) { .cards { grid-template-columns: repeat(2, 1fr); } }
+.card small, small { color: #0369a1; font-weight: 800; }
+.alert { padding: 12px 14px; border-radius: 16px; background: #fff7ed; color: #9a3412; border: 1px solid #fed7aa; font-weight: 700; }
+.menu-item, .basket-line { display: grid; grid-template-columns: 1fr auto; gap: 14px; align-items: center; padding: 14px 0; border-top: 1px solid #e2e8f0; }
+.menu-item > div:last-child { display: grid; justify-items: end; gap: 8px; }
+.basket-line { grid-template-columns: 1fr auto auto; }
+.basket-line div { display: flex; gap: 8px; }
+.checkout-form { display: grid; gap: 10px; }
+input, select, textarea { width: 100%; box-sizing: border-box; border: 1px solid #cbd5e1; border-radius: 16px; padding: 13px 14px; font: inherit; background: white; }
+textarea { min-height: 90px; }
+.summary { display: grid; gap: 10px; margin-top: 16px; }
+.card-element { border: 1px solid #cbd5e1; border-radius: 16px; padding: 14px; min-height: 24px; }
+.bottom-nav, .tabbar { position: fixed; left: 12px; right: 12px; bottom: 12px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 10px; border: 1px solid rgba(226,232,240,.9); border-radius: 26px; background: rgba(255,255,255,.88); backdrop-filter: blur(18px); box-shadow: 0 18px 60px rgba(15, 23, 42, .18); }
+.bottom-nav { display: none; }
+.tabbar button { background: #0f172a; color: white; }
+@media (min-width: 720px) { .cards { grid-template-columns: repeat(3, 1fr); } .menu-item { grid-template-columns: 1fr 150px; } }

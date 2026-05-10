@@ -29,6 +29,8 @@ services:
       REDIS_URL: redis://redis:6379
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-sk_test_replace_me}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-whsec_replace_me}
+      AUTH_TOKEN_SECRET: ${AUTH_TOKEN_SECRET:-dev-only-change-me-32-byte-secret}
+      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:-pk_test_replace_me}
       CUSTOMER_APP_URL: ${CUSTOMER_APP_URL:-http://localhost:3001}
     ports: ["3000:3000"]
     depends_on:
