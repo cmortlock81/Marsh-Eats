@@ -121,6 +121,11 @@ stripe listen --forward-to localhost:3000/api/v1/stripe/webhook
 
 Copy the printed `whsec_...` value to `STRIPE_WEBHOOK_SECRET`, restart the API, then complete a test payment from the customer PWA. The webhook transitions `payment_intent.succeeded` orders to `paid` and `payment_intent.payment_failed` orders to `failed` through the shared order-state validation.
 
+
+## WordPress bridge
+
+The repository includes a WordPress/Mortify bridge plugin at `wordpress/marsh-eats-bridge`. It mounts the `/app` shell and exposes `/wp-json/marsh-eats/v1` proxy endpoints while keeping restaurants, menus, orders, payments, authentication, dashboards, and RNLI reporting in the Marsh Eats API as the source of truth. See `wordpress/marsh-eats-bridge/README.md` for installation, settings, shortcode, route, Stripe, and security details.
+
 ## API highlights
 
 - `GET /api/v1/restaurants` returns active seeded restaurants from PostgreSQL.

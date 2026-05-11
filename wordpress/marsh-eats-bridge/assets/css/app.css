@@ -1,0 +1,51 @@
+.marsh-eats-app {
+  --me-bg: #f6f7fb;
+  --me-card: rgba(255, 255, 255, 0.92);
+  --me-text: #17202a;
+  --me-muted: #667085;
+  --me-border: rgba(23, 32, 42, 0.09);
+  --me-brand: #0f766e;
+  --me-danger: #b42318;
+  color: var(--me-text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  line-height: 1.45;
+}
+.marsh-eats-app * { box-sizing: border-box; }
+.marsh-eats-shell { background: var(--me-bg); border-radius: 28px; margin: 0 auto; max-width: 1120px; min-height: 70vh; overflow: hidden; padding-bottom: 80px; }
+.marsh-eats-header { align-items: center; background: rgba(255,255,255,.85); backdrop-filter: blur(18px); border-bottom: 1px solid var(--me-border); display: flex; justify-content: space-between; padding: 16px 18px; position: sticky; top: 0; z-index: 5; }
+.marsh-eats-brand { color: var(--me-text); font-size: 1.15rem; font-weight: 800; text-decoration: none; }
+.marsh-eats-top-nav { display: none; gap: 14px; }
+.marsh-eats-top-nav a, .marsh-eats-bottom-nav a { color: var(--me-muted); font-weight: 650; text-decoration: none; }
+.marsh-eats-main { padding: 18px; }
+.marsh-eats-panel, .marsh-eats-card { background: var(--me-card); border: 1px solid var(--me-border); border-radius: 24px; box-shadow: 0 18px 50px rgba(23,32,42,.07); padding: 18px; }
+.marsh-eats-panel h1, .marsh-eats-card h2 { letter-spacing: -0.035em; margin: 4px 0 10px; }
+.marsh-eats-eyebrow { color: var(--me-brand); font-size: .78rem; font-weight: 800; letter-spacing: .12em; margin: 0; text-transform: uppercase; }
+.marsh-eats-grid { display: grid; gap: 16px; grid-template-columns: 1fr; }
+.marsh-eats-stack { display: grid; gap: 14px; }
+.marsh-eats-image { background: linear-gradient(135deg, #ccfbf1, #dbeafe); background-position: center; background-size: cover; border-radius: 20px; height: 150px; margin-bottom: 14px; }
+.marsh-eats-row { align-items: center; border-bottom: 1px solid var(--me-border); display: flex; gap: 14px; justify-content: space-between; padding: 14px 0; }
+.marsh-eats-row:last-child { border-bottom: 0; }
+.marsh-eats-row p, .marsh-eats-muted { color: var(--me-muted); margin: 4px 0; }
+.marsh-eats-qty { align-items: center; display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+.marsh-eats-total { align-items: center; background: #ecfdf5; border-radius: 18px; display: flex; justify-content: space-between; padding: 14px; }
+.marsh-eats-form, .marsh-eats-form-inline { display: grid; gap: 12px; }
+.marsh-eats-form input, .marsh-eats-form select, .marsh-eats-form textarea, .marsh-eats-form-inline input { background: #fff; border: 1px solid var(--me-border); border-radius: 14px; color: var(--me-text); font: inherit; padding: 13px 14px; width: 100%; }
+.marsh-eats-form textarea { min-height: 96px; resize: vertical; }
+.marsh-eats-app button, .marsh-eats-button { background: var(--me-text); border: 0; border-radius: 999px; color: #fff; cursor: pointer; display: inline-flex; font: inherit; font-weight: 750; justify-content: center; padding: 11px 16px; text-decoration: none; }
+.marsh-eats-app button:hover, .marsh-eats-button:hover { background: var(--me-brand); color: #fff; }
+.marsh-eats-alert { background: #fef3f2; border: 1px solid #fecdca; border-radius: 16px; color: var(--me-danger); padding: 12px; }
+.marsh-eats-loading { color: var(--me-muted); padding: 18px 0; }
+.marsh-eats-payment-element { background: #fff; border: 1px solid var(--me-border); border-radius: 18px; margin: 16px 0; padding: 14px; }
+.marsh-eats-tabs { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+.marsh-eats-bottom-nav { align-items: center; background: rgba(255,255,255,.92); backdrop-filter: blur(18px); border: 1px solid var(--me-border); border-radius: 24px; bottom: 14px; box-shadow: 0 18px 48px rgba(23,32,42,.12); display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; left: 14px; padding: 8px; position: fixed; right: 14px; z-index: 10; }
+.marsh-eats-bottom-nav a { align-items: center; border-radius: 18px; display: grid; font-size: .8rem; justify-items: center; padding: 8px 4px; }
+.marsh-eats-bottom-nav a:hover { background: #f2f4f7; color: var(--me-text); }
+@media (min-width: 720px) {
+  .marsh-eats-shell { padding-bottom: 24px; }
+  .marsh-eats-main { padding: 28px; }
+  .marsh-eats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .marsh-eats-top-nav { display: flex; }
+  .marsh-eats-bottom-nav { display: none; }
+  .marsh-eats-form-inline { align-items: center; display: flex; }
+}
+@media (min-width: 1024px) { .marsh-eats-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
